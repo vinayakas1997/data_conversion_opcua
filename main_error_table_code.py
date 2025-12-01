@@ -1,50 +1,9 @@
-from Tables_config_codes import ERROR_TABLE, ERROR_PATTERN_TYPES
+from Tables_config_codes import ERROR_TABLE, ERROR_PATTERN_TYPES, get_bit_number
 import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 # some of the predefined data 
 
-
-
-# # Error Pattern Configuration
-# ERROR_PATTERN_TYPES = {
-#     'pattern_1': {
-#         '起動時異常': {
-#             'code': '1',
-#             'register_start': 550,
-#             'register_end': 564,
-#             'bit_number_start': 0,
-#             'bits_per_register': 16,
-#             'description': 'Pattern 1 起動時異常 registers'
-#         },
-#         '運転中異常': {
-#             'code': '2',
-#             'register_start': 565,
-#             'register_end': 589,
-#             'bit_number_start': 240,
-#             'bits_per_register': 16,
-#             'description': 'Pattern 1 運転中異常 registers'
-#         }
-#     },
-#     'pattern_2': {
-#         '起動時異常': {
-#             'code': '1',
-#             'register_start': 550,
-#             'register_end': 569,
-#             'bit_number_start': 0,
-#             'bits_per_register': 16,
-#             'description': 'Pattern 2 起動時異常 registers'
-#         },
-#         '運転中異常': {
-#             'code': '2',
-#             'register_start': 570,
-#             'register_end': 589,
-#             'bit_number_start': 320,
-#             'bits_per_register': 16,
-#             'description': 'Pattern 2 運転中異常 registers'
-#         }
-#     }
-# }
 
 
 
@@ -64,30 +23,36 @@ class CreateErrorTableCode:
         self.output_rows = []
         
         if data_path is not None:
-            self.data = pd.read_csv(data_path, encoding="utf-8")
+            self.data = pd.read_csv(data_path, encoding="utf-8", dtype=str)
     
     
-    def get_bit_number(self, register: int, bit_position: int, pattern: str) -> Tuple[int, str]:
-        """
-        Calculate absolute bit number and determine error type.
-        Returns: (bit_number, error_type)
-        """
-        pattern_config = ERROR_PATTERN_TYPES[pattern]
-        
-        for error_type, config in pattern_config.items():
-            if config['register_start'] <= register <= config['register_end']:
-                register_offset = register - config['register_start']
-                bit_number = (register_offset * config['bits_per_register']) + bit_position + config['bit_number_start']
-                return (bit_number, error_type)
-        
-        raise ValueError(f"Register {register} not found in pattern {pattern}")
     
-    
-    def extract_bit_value(self, register_value: int, bit_position: int) -> int:
-        """Extract specific bit value from register value (16-bit integer)."""
-        if pd.isna(register_value):
+    def extract_bit_value(self, register_value, bit_position: int) -> int:
+        """Extract specific bit value from register value (16-bit integer or 4-digit hex string)."""
+        if pd.isna(register_value) or register_value in ('nan', ''):
             return 0
+
+        # Handle hex string input
+        if isinstance(register_value, str):
+            # Clean the hex string
+            cleaned = register_value.lower().replace('0x', '')
+            if not all(c in '0123456789abcdef' for c in cleaned):
+                raise ValueError(f"Invalid hex string: {register_value}. Contains non-hex characters.")
+            if len(cleaned) > 4:
+                raise ValueError(f"Invalid hex string: {register_value}. Too many digits (max 4).")
+            # Pad with leading zeros to make 4 digits
+            cleaned = cleaned.zfill(4)
+            # Convert to integer
+            register_value = int(cleaned, 16)
+
+        # Extract the bit (works for integers)
         return (int(register_value) >> bit_position) & 1
+
+    # def extract_bit_value(self, register_value: int, bit_position: int) -> int:
+    #     """Extract specific bit value from register value (16-bit integer)."""
+    #     if pd.isna(register_value):
+    #         return 0
+    #     return (int(register_value) >> bit_position) & 1
     
     
     def add_output_row(self, timestamp: datetime, machine_code: int, machine_name: str,
@@ -127,7 +92,9 @@ class CreateErrorTableCode:
             bit_value = self.extract_bit_value(register_value, bit_position)
             
             try:
-                bit_number, error_type = self.get_bit_number(register, bit_position, pattern)
+
+                bit_number, error_type, _ = get_bit_number(register, bit_position, pattern)
+                print(f"from process register_bits: register: {register}, bit_position: {bit_position}, pattern: {pattern}, bit_number: {bit_number}, error_type: {error_type}")
             except ValueError:
                 continue  # Skip if register not in monitoring range
             
@@ -135,6 +102,7 @@ class CreateErrorTableCode:
             is_active = bit_number in self.active_errors[machine_name]
             
             if bit_value == 1 and not is_active:
+                print(f"register value: {register_value}, bit_position: {bit_position}, bit_value: {bit_value}")
                 # ===== BIT BECAME 1 (ERROR STARTED) =====
                 # Record start time
                 self.active_errors[machine_name][bit_number] = {
@@ -209,7 +177,7 @@ class CreateErrorTableCode:
             
             # Get register ranges to monitor for this machine
             register_ranges = self.get_register_range_for_machine(machine_name)
-            print("register_ranges:", register_ranges)
+            # print("register_ranges:", register_ranges)
             # Check all registers in the monitoring range
             for start_reg, end_reg in register_ranges:
                 for register in range(start_reg, end_reg + 1):
@@ -261,22 +229,15 @@ class CreateErrorTableCode:
         return summary
     
     
-    # def export_error_log(self, output_path: str):
-    #     """Export error log to CSV."""
-    #     df = self.get_error_summary()
-    #     if not df.empty:
-    #         df.to_csv(output_path, index=False, encoding='utf-8')
-    #         print(f"Error log exported to {output_path}")
-    #     else:
-    #         print("No errors to export")
+ 
 
 
 
 if __name__ == "__main__":
         # Machine Configuration
     MACHINE_NAME_CODE = {
-        "AM322": {"code": 1, "error_pattern": "pattern_2"}, 
-        "AM323": {"code": 2, "error_pattern": "pattern_1"}
+        "AM322": {"code": 1, "error_pattern": "pattern_1"}, 
+        "AM323": {"code": 2, "error_pattern": "pattern_2"}
     }
     plc_data_file = "Combined_sorted.csv"
     # Initialize the error tracker
@@ -319,52 +280,6 @@ if __name__ == "__main__":
 
 
 
-# # ============================================================================
-# # USAGE EXAMPLE
-# # ============================================================================
-
-# if __name__ == "__main__":
-#     day_night= "昼勤"    
-#     unit_code = "10-1719"
-#     machine_name_code ={"AM322": {"code": 1, "error_pattern": "pattern_1"}, 
-#                         "AM323":{"code": 2, "error_pattern": "pattern_2"}}
-#     # Machine Configuration
-#     MACHINE_NAME_CODE = {
-#         "AM322": {"code": 1, "error_pattern": "pattern_1"}, 
-#         "AM323": {"code": 2, "error_pattern": "pattern_2"}
-#     }
-#     # Initialize the error tracker
-#     tracker = CreateErrorTableCode(
-#         machine_name_code=MACHINE_NAME_CODE,
-#         day_night="昼勤",
-#         unit_code="10-1719",
-#         data_path="Combined_sorted.csv"  # Your CSV file path
-#     )
-    
-#     # Process the data
-#     print("Processing data...")
-#     error_summary = tracker.process_data()
-    
-#     # Display results
-#     print("\n=== ERROR SUMMARY ===")
-#     print(error_summary)
-    
-#     print("\n=== ACTIVE ERRORS (Still ongoing) ===")
-#     print(tracker.get_active_errors_summary())
-    
-#     # Export to CSV
-#     tracker.export_error_log("error_log_output.csv")
-    
-#     # Example: Filter errors by machine
-#     if not error_summary.empty:
-#         am322_errors = error_summary[error_summary['machine_name'] == 'AM322']
-#         print("\n=== AM322 ERRORS ===")
-#         print(am322_errors)
-        
-#         # Get errors that lasted more than 60 seconds
-#         long_errors = error_summary[error_summary['duration_seconds'] > 60]
-#         print("\n=== ERRORS > 60 seconds ===")
-#         print(long_errors)
 
 
         

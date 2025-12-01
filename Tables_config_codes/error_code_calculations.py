@@ -252,5 +252,20 @@ if __name__ == "__main__":
     # print(f"Total mappings: {len(full_map)}")  # 320
 
     # # Example 2: Reverse lookup
-    reg, bit, reg_type, error_code = get_register_and_bit(488, 'pattern_2')
-    print(f" Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    reg, bit, reg_type, error_code = get_register_and_bit(306, 'pattern_2')
+    print(f" Number 306 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+
+    reg, bit, reg_type, error_code = get_register_and_bit(296, 'pattern_2')
+    print(f" Number 296 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+
+    reg, bit, reg_type, error_code = get_register_and_bit(404, 'pattern_2')
+    print(f" Number 404 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+
+    reg, bit, reg_type, error_code = get_register_and_bit(239, 'pattern_2')
+    print(f" Number 239 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+
+    reg, bit, reg_type, error_code = get_register_and_bit(656, 'pattern_1')
+    print(f" Number 656 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+
+    bit_num, reg_type, error_code = get_bit_number(569, 2, 'pattern_2')
+    print(f"Pattern 2:  Bit number: {bit_num}, Type: {reg_type},Error Code: {error_code}")  # 0, type1
