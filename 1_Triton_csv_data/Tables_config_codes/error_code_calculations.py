@@ -18,7 +18,7 @@ ERROR_PATTERN_TYPES = {
             'code':'2',
             'register_start': 565,
             'register_end': 589,
-            'bit_number_start': 320,
+            'bit_number_start': 240,
             'bits_per_register': 16,
             'description': 'Pattern 1 Type 2 registers with bit mapping 320-639'
         }
@@ -143,7 +143,7 @@ def get_register_and_bit(bit_number: int, pattern: str = 'pattern_1') -> tuple[i
             bit_position = offset_from_start % config['bits_per_register']
             register = config['register_start'] + register_offset
             
-            return (register, bit_position, reg_type,error_code)
+            return (register, bit_position, reg_type, error_code)
     
     raise ValueError(f"Bit number {bit_number} not in valid range for pattern '{pattern}'")
 
@@ -251,21 +251,24 @@ if __name__ == "__main__":
     # full_map = generate_full_mapping('pattern_1', 'type1')
     # print(f"Total mappings: {len(full_map)}")  # 320
 
-    # # Example 2: Reverse lookup
-    reg, bit, reg_type, error_code = get_register_and_bit(306, 'pattern_2')
-    print(f" Number 306 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    # # # Example 2: Reverse lookup
+    # reg, bit, reg_type, error_code = get_register_and_bit(306, 'pattern_2')
+    # print(f" Number 306 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
 
-    reg, bit, reg_type, error_code = get_register_and_bit(296, 'pattern_2')
-    print(f" Number 296 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    # reg, bit, reg_type, error_code = get_register_and_bit(296, 'pattern_2')
+    # print(f" Number 296 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
 
-    reg, bit, reg_type, error_code = get_register_and_bit(404, 'pattern_2')
-    print(f" Number 404 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    # reg, bit, reg_type, error_code = get_register_and_bit(404, 'pattern_2')
+    # print(f" Number 404 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
 
-    reg, bit, reg_type, error_code = get_register_and_bit(239, 'pattern_2')
-    print(f" Number 239 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    # reg, bit, reg_type, error_code = get_register_and_bit(239, 'pattern_2')
+    # print(f" Number 239 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
 
-    reg, bit, reg_type, error_code = get_register_and_bit(656, 'pattern_1')
-    print(f" Number 656 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
+    # reg, bit, reg_type, error_code = get_register_and_bit(656, 'pattern_1')
+    # print(f" Number 656 Register: {reg}, Bit: {bit}, Type: {reg_type} error_code: {error_code}")  # 569, 15, type1
 
-    bit_num, reg_type, error_code = get_bit_number(569, 2, 'pattern_2')
-    print(f"Pattern 2:  Bit number: {bit_num}, Type: {reg_type},Error Code: {error_code}")  # 0, type1
+    # bit_num, reg_type, error_code = get_bit_number(569, 2, 'pattern_2')
+    # print(f"Pattern 2:  Bit number: {bit_num}, Type: {reg_type},Error Code: {error_code}")  # 0, type1
+
+    print(get_bit_number(569,0,'pattern_1'))
+    print(get_bit_number(569,0,'pattern_2'))

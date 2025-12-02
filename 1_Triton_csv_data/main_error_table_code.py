@@ -15,7 +15,11 @@ class CreateErrorTableCode:
         self.machine_name_code = machine_name_code
         self.working_mode = {"502.12": "自動", "502.13": "手動", "502.14": "払出"}
         self.data = None
-        
+
+        # Initilaize ERROR_TABLE
+        self.ERROR_TABLE = ERROR_TABLE
+        self.error_columns_details = self.ERROR_TABLE.get("columns", {})
+        self.error_column_names = list(self.error_columns_details.keys())
         # Active error tracking: {machine_name: {bit_number: {start_time, error_type}}}
         self.active_errors = {}
         
@@ -24,11 +28,19 @@ class CreateErrorTableCode:
         
         if data_path is not None:
             self.data = pd.read_csv(data_path, encoding="utf-8", dtype=str)
-    
+            print()
     
     
     def extract_bit_value(self, register_value, bit_position: int) -> int:
-        """Extract specific bit value from register value (16-bit integer or 4-digit hex string)."""
+        """Extract specific bit value from register value 
+        (16-bit integer or 4-digit hex string).
+
+        Args:
+            register_value: int or str (hex) [my case is str from csv]
+            bit_position: int (0-15)
+        Returns: 
+            int: 0 or 1        
+        """
         if pd.isna(register_value) or register_value in ('nan', ''):
             return 0
 
@@ -48,33 +60,96 @@ class CreateErrorTableCode:
         # Extract the bit (works for integers)
         return (int(register_value) >> bit_position) & 1
 
-    # def extract_bit_value(self, register_value: int, bit_position: int) -> int:
-    #     """Extract specific bit value from register value (16-bit integer)."""
-    #     if pd.isna(register_value):
-    #         return 0
-    #     return (int(register_value) >> bit_position) & 1
-    
     
     def add_output_row(self, timestamp: datetime, machine_code: int, machine_name: str,
-                       bit_number: int, error_type: str, duration: Optional[int]):
+                       bit_number: int, error_type: str, number_status: str ,duration: Optional[int]):
         """
         Add a row to output.
         duration: 0 for start, calculated seconds for end, None for other error type
         """
-        row = {
-            'Timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            'machine_code': machine_code,
-            'machine_name': machine_name,
-            'bit_number': bit_number,
-            '起動時異常': None,
-            '運転中異常': None
-        }
+        row = {}
+        columns = list(self.error_columns_details.keys())
+        # in the timestamp repace - with /
+        timestamp = timestamp.strftime("%Y/%m/%d %H:%M:%S")
+
+        # column 0 -  日付
+        row[columns[0]] = timestamp
+
+        # column 1 - 勤務日付軸 
+        try:
+            dt_object = datetime.strptime(timestamp, "%Y/%m/%d %H:%M:%S")
+            date = dt_object.date().strftime("%Y/%m/%d")
+            row[columns[1]] = date
+        except Exception as e :
+            print("Error parsing timestamp:", timestamp, e)
         
-        # Set duration in appropriate column
-        if error_type == '起動時異常':
-            row['起動時異常'] = duration
-        elif error_type == '運転中異常':
-            row['運転中異常'] = duration
+
+        # column 2 - 昼夜勤
+        row[columns[2]] = self.day_night
+
+        #column 3 - ユニットコード
+        row[columns[3]] = self.unit_code
+
+        # column 4 - 工程順番
+        row[columns[4]] = machine_code
+
+        # column 5 - 機番
+        row[columns[5]] = machine_name
+
+        # column 6 - 時間帯
+        row[columns[6]] = "-"
+
+        # column 7 - 作業者
+        row[columns[7]] = "--"
+
+        # column 8 - 運転モード -- has to be developed
+        
+        filer_value = self.data.loc[
+                    (self.data['Timestamp'] == timestamp) &
+                    (self.data['Machine_Name'] == machine_name)
+                    ]["IO_0502"]
+        if not filer_value.empty:
+            mode_value = filer_value.values[0]
+        # print("mode_value:", mode_value)
+        if mode_value == "9000":
+            row[columns[8]] = "自動"
+        elif mode_value == "A000":
+            row[columns[8]] = "手動"
+        elif mode_value == "8000":   
+            row[columns[8]] = "払出"
+        else:
+            row[columns[8]]="None" 
+        # row[columns[8]] = "--"
+
+
+        # column 9 - 異常種類
+        row[columns[9]] = error_type
+
+        # column 10 - 異常№
+        row[columns[10]] = bit_number
+
+        # column 11 - 異常内容
+        row[columns[11]] = "need_data"
+
+        # column 12 - ON/OFF (number status)
+        row[columns[12]] = number_status
+
+
+        # column 13, 14 - 起動時異常, 運転中異常
+        if error_type == "起動時異常":
+            row[columns[13]] = duration
+            row[columns[14]] = 0
+        elif error_type == "運転中異常":
+            row[columns[13]] = 0
+            row[columns[14]] = duration
+        else:
+            row[columns[13]] = 0
+            row[columns[14]] = 0
+
+        # for all other columns, fill with None
+        for col in columns[15:]:
+            row[col] = "None"
+        
         
         self.output_rows.append(row)
     
@@ -94,7 +169,7 @@ class CreateErrorTableCode:
             try:
 
                 bit_number, error_type, _ = get_bit_number(register, bit_position, pattern)
-                print(f"from process register_bits: register: {register}, bit_position: {bit_position}, pattern: {pattern}, bit_number: {bit_number}, error_type: {error_type}")
+                # print(f"from process register_bits: register: {register}, bit_position: {bit_position}, pattern: {pattern}, bit_number: {bit_number}, error_type: {error_type}")
             except ValueError:
                 continue  # Skip if register not in monitoring range
             
@@ -102,7 +177,7 @@ class CreateErrorTableCode:
             is_active = bit_number in self.active_errors[machine_name]
             
             if bit_value == 1 and not is_active:
-                print(f"register value: {register_value}, bit_position: {bit_position}, bit_value: {bit_value}")
+                # print(f"All details - bit number: {bit_number} error_type:{error_type} register value: {register_value}, bit_position: {bit_position}, bit_value: {bit_value}")
                 # ===== BIT BECAME 1 (ERROR STARTED) =====
                 # Record start time
                 self.active_errors[machine_name][bit_number] = {
@@ -117,6 +192,7 @@ class CreateErrorTableCode:
                     machine_name=machine_name,
                     bit_number=bit_number,
                     error_type=error_type,
+                    number_status= "on",
                     duration=0
                 )
                 
@@ -136,6 +212,7 @@ class CreateErrorTableCode:
                     machine_name=machine_name,
                     bit_number=bit_number,
                     error_type=error_type,
+                    number_status= "異常処置終了",
                     duration=duration_sec
                 )
                 
@@ -194,8 +271,9 @@ class CreateErrorTableCode:
     def get_output_dataframe(self) -> pd.DataFrame:
         """Convert output rows to DataFrame."""
         if not self.output_rows:
-            return pd.DataFrame(columns=['Timestamp', 'machine_code', 'machine_name', 
-                                        'bit_number', '起動時異常', '運転中異常'])
+            # return pd.DataFrame(columns=['Timestamp', 'machine_code', 'machine_name', 
+            #                             'bit_number', '起動時異常', '運転中異常'])
+            return pd.DataFrame(columns=self.error_column_names)
         
         df = pd.DataFrame(self.output_rows)
         return df
@@ -205,7 +283,7 @@ class CreateErrorTableCode:
         """Export error log to CSV."""
         df = self.get_output_dataframe()
         if not df.empty:
-            df.to_csv(output_path, index=False, encoding='utf-8')
+            df.to_csv(output_path, index=False, encoding='utf-8-sig')
             print(f"Error log exported to {output_path} ({len(df)} rows)")
         else:
             print("No errors to export")
@@ -252,28 +330,28 @@ if __name__ == "__main__":
     print("Processing data...")
     output_df = tracker.process_data()
     
-    # Display results
-    print("\n=== OUTPUT PREVIEW ===")
-    print(output_df.head(20))
+    # # Display results
+    # print("\n=== OUTPUT PREVIEW ===")
+    # print(output_df.head(20))
     
-    print("\n=== STATISTICS ===")
-    print(f"Total error events: {len(output_df)}")
-    print(f"Active errors (still ongoing): {sum(len(v) for v in tracker.active_errors.values())}")
+    # print("\n=== STATISTICS ===")
+    # print(f"Total error events: {len(output_df)}")
+    # print(f"Active errors (still ongoing): {sum(len(v) for v in tracker.active_errors.values())}")
     
-    # Export to CSV
-    tracker.export_to_csv("error_log_output.csv")
+    # # Export to CSV
+    tracker.export_to_csv("proper_output2.csv")
     
-    # Example: Filter by machine
-    if not output_df.empty:
-        am322_errors = output_df[output_df['machine_name'] == 'AM322']
-        print(f"\nAM322 errors: {len(am322_errors)} rows")
+    # # Example: Filter by machine
+    # if not output_df.empty:
+    #     am322_errors = output_df[output_df['machine_name'] == 'AM322']
+    #     print(f"\nAM322 errors: {len(am322_errors)} rows")
         
-        # Show only completed errors (duration > 0)
-        completed_startup = output_df[output_df['起動時異常'].notna() & (output_df['起動時異常'] > 0)]
-        print(f"\nCompleted 起動時異常 errors: {len(completed_startup)}")
+    #     # Show only completed errors (duration > 0)
+    #     completed_startup = output_df[output_df['起動時異常'].notna() & (output_df['起動時異常'] > 0)]
+    #     print(f"\nCompleted 起動時異常 errors: {len(completed_startup)}")
         
-        completed_runtime = output_df[output_df['運転中異常'].notna() & (output_df['運転中異常'] > 0)]
-        print(f"Completed 運転中異常 errors: {len(completed_runtime)}")
+    #     completed_runtime = output_df[output_df['運転中異常'].notna() & (output_df['運転中異常'] > 0)]
+    #     print(f"Completed 運転中異常 errors: {len(completed_runtime)}")
 
 
 
