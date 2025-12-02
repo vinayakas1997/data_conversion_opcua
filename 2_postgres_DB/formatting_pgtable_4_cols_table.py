@@ -187,15 +187,23 @@ class TableFormatter:
 
 if __name__ == "__main__":
     data_path = "2_postgres_DB/Vina_data/AM322_postgres_old.csv"
-    
-    # Example: With time filtering
     formatter = TableFormatter(
         datapath=data_path, 
         device_name="AM322",
         start_time="2025-11-27 14:00:00",
         end_time="2025-11-27 14:40:00"
     )
-    
     # Save to CSV
     output_path = "2_postgres_DB/Vina_data/AM322_parsed_output.csv"
+    formatter.save_to_csv(output_path)
+
+    data_path = "2_postgres_DB/Vina_data/AM323_postgres_old.csv"
+    formatter = TableFormatter(
+        datapath=data_path, 
+        device_name="AM323",
+        start_time="2025-11-27 14:00:00",
+        end_time="2025-11-27 14:40:00"
+    )
+    # Save to CSV
+    output_path = "2_postgres_DB/Vina_data/AM323_parsed_output.csv"
     formatter.save_to_csv(output_path)
