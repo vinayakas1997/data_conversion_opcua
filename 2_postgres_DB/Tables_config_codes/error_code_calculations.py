@@ -18,7 +18,7 @@ ERROR_PATTERN_TYPES = {
             'code':'2',
             'register_start': 565,
             'register_end': 589,
-            'bit_number_start': 320,
+            'bit_number_start': 240,
             'bits_per_register': 16,
             'description': 'Pattern 1 Type 2 registers with bit mapping 320-639'
         }
