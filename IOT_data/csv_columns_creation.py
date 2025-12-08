@@ -29,4 +29,4 @@ def csv_to_dict(csv_file_path, json_output_path):
 
 
 # Example usage
-csv_to_dict("error_table_details.csv", "error_output.json")
+csv_to_dict("production_table_details.csv", "PRODUCTION_output.json")

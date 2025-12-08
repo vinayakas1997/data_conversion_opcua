@@ -1,0 +1,63 @@
+﻿Japanese_Name,English_Name,PLC_Depends,PLC_Memory_Address,PLC_Data_Type,Normal_Data_Type,Sql_Data_Type,Scale,comment
+日付,INSERT_DATE,NO,,,,,,
+勤務日付軸,,NO,,,,,,
+昼夜勤,"AB_SECTION_DAY											",NO,,,,,,
+ユニットコード,,NO,,,,,,
+工程順番,,NO,,,,,,
+機番,"Machine_No											",NO,,,,,,
+時間帯,,NO,,,,,,
+№,,YES,,WORD,UDINT,"numeric(10,0)",,"depends on reg index [DM31651: 1,..,DM31665:15]"
+ST,,NO,,,,,,None
+作業者,,YES,"[DM31601,DM31600]",DWORD,UDINT,,,
+機種,,YES,,,,,,"depends on value in reg  [DM31651,..,DM31665]"
+背番号,,,,,,,,translation of reg - as of now none
+シリアル番号,,,,,,,,ask once again 
+運転モード,V_work_mode,YES,"[502.12,502.13,502.14]",,,,,"[502.12-自動,502.13-手動,502.14払出]"
+IN/OUT,,,,,,,,"Depends on bits of reg 510, [1:IN,0:OUT]"
+判定,,,,,,,,"Depends on 511 and 512 bits, if 511 bit active -OK, if 512 bit active NG"
+MT,MT_Timer,,,,,,,"IN and OUT , the time taken "
+インデックス番号,Index_No,YES,DM31700,WORD,USINT,tinyint,,
+ﾄﾙｸ上限値,Torque_UpLimit,YES,DM31606,WORD,REAL,real,[.00],AM323
+ﾄﾙｸ下限値,Torque_LoLimit,YES,DM31607,WORD,REAL,real,[.00],AM323
+ﾄﾙｸﾎｰﾙﾄﾞ値,Torque_Hold,YES,DM31605,WORD,REAL,real,[.00],AM323
+左低圧ﾎﾞﾙﾄ圧入高さﾎｰﾙﾄﾞ,L_Low_Bolt_Press_Hight_Hold,YES,DM31602,WORD,REAL,real,[.00],AM322
+左低圧ﾎﾞﾙﾄ圧入高さ上限値,L_Low_Bolt_Press_Hight_UpLimit,YES,DM31603,WORD,REAL,real,[.00],AM322
+左低圧ﾎﾞﾙﾄ圧入高さ下限値,L_Low_Bolt_Press_Hight_LoLimit,YES,DM31604,WORD,REAL,real,[.00],AM322
+左高圧ﾎﾞﾙﾄ圧入高さﾎｰﾙﾄﾞ,L_High_Bolt_Press_Hight_Hold,YES,DM31605,WORD,REAL,real,[.00],AM322
+左高圧ﾎﾞﾙﾄ圧入高さ上限値,L_High_Bolt_Press_Hight_UpLimit,YES,DM31606,WORD,REAL,real,[.00],AM322
+左高圧ﾎﾞﾙﾄ圧入高さ下限値,L_High_Bolt_Press_Hight_LoLimit,YES,DM31607,WORD,REAL,real,[.00],AM322
+右低圧ﾎﾞﾙﾄ圧入高さﾎｰﾙﾄﾞ,R_Low_Bolt_Press_Hight_Hold,YES,DM31608,WORD,REAL,real,[.00],AM322
+右低圧ﾎﾞﾙﾄ圧入高さ上限値,R_Low_Bolt_Press_Hight_UpLimit,YES,DM31609,WORD,REAL,real,[.00],AM322
+右低圧ﾎﾞﾙﾄ圧入高さ下限値,R_Low_Bolt_Press_Hight_LoLimit,YES,DM31610,WORD,REAL,real,[.00],AM322
+右高圧ﾎﾞﾙﾄ圧入高さﾎｰﾙﾄﾞ,R_High_Bolt_Press_Hight_Hold,YES,DM31611,WORD,REAL,real,[.00],AM322
+右高圧ﾎﾞﾙﾄ圧入高さ上限値,R_High_Bolt_Press_Hight_UpLimit,YES,DM31612,WORD,REAL,real,[.00],AM322
+右高圧ﾎﾞﾙﾄ圧入高さ下限値,R_High_Bolt_Press_Hight_LoLimit,YES,DM31613,WORD,REAL,real,[.00],AM322
+3点ﾋﾟｯﾁ測定ﾎｰﾙﾄﾞ,Three_Points_Pitch_Hold,YES,DM31614,WORD,REAL,real,[.0],AM322
+3点ﾋﾟｯﾁ測定上限値,Three_Points_Pitch_UpLimit,YES,DM31615,WORD,REAL,real,[.0],AM322
+3点ﾋﾟｯﾁ測定下限値,Three_Points_Pitch_LoLimit,YES,DM31616,WORD,REAL,real,[.0],AM322
+ﾌﾟﾗｸﾞ径ﾎｰﾙﾄﾞ,Plug_Dia_Hold,YES,DM31617,WORD,REAL,real,[.00],AM322
+ﾌﾟﾗｸﾞ径上限値,Plug_Dia_UpLimit,YES,DM31618,WORD,REAL,real,[.00],AM322
+ﾌﾟﾗｸﾞ径下限値,Plug_Dia_LoLimit,YES,DM31619,WORD,REAL,real,[.00],AM322
+ﾌﾟﾗｸﾞ押えﾎｰﾙﾄﾞ,Plug_Push_Hight_Hold,YES,DM31620,WORD,REAL,real,[.00],AM322
+ﾌﾟﾗｸﾞ押え上限値,Plug_Push_Hight_UpLimit,YES,DM31621,WORD,REAL,real,[.00],AM322
+ﾌﾟﾗｸﾞ押え下限値,Plug_Push_Hight_LoLimit,YES,DM31622,WORD,REAL,real,[.00],AM322
+割ﾋﾟﾝ孔位置ﾎｰﾙﾄﾞ,Split_Pin_Hole_Posi_Hold,YES,DM31602,WORD,REAL,real,[.00],AM323
+割ﾋﾟﾝ孔位置上限値,Split_Pin_Hole_Posi_UpLimit,YES,DM31603,WORD,REAL,real,[.00],AM323
+割ﾋﾟﾝ孔位置下限値,Split_Pin_Hole_Posi_LoLimit,YES,DM31604,WORD,REAL,real,[.00],AM323
+ｶｼﾒ高さﾎｰﾙﾄﾞ値,RollFitting_Hight_Hold,YES,DM31608,WORD,REAL,real,[.00],AM323
+ｶｼﾒ高さ上限値,RollFitting_Hight_UpLimit,YES,DM31609,WORD,REAL,real,[.00],AM323
+ｶｼﾒ高さ下限値,RollFitting_Hight_LoLimit,YES,DM31610,WORD,REAL,real,[.00],AM323 
+刻印振動検出回数,Stamp_Vibrate_Detect_Count,YES,DM31611,WORD,REAL,real,[0],AM323
+刻印振動回数設定,Stamp_Vibrate_Detect_Set_Count,YES,DM31612,WORD,REAL,real,[0],AM323
+完成品ｼﾘｱﾙ№,FinishProd_SERIAL_No,YES,DM31613,WORD,REAL,real,[0], AM323
+完成品ﾜｰｸ№,FinishProd_Work_No,YES,DM31614,WORD,REAL,real,[0], AM323
+完成品左低圧ﾎﾞﾙﾄ圧入高さ,FinishProd_L_Low_Bolt_Press_Hight,YES,DM31615,WORD,REAL,real,[.00],AM323
+完成品左高圧ﾎﾞﾙﾄ圧入高さ,FinishProd_L_High_Bolt_Press_Hight,YES,DM31616,WORD,REAL,real,[.00],AM323
+完成品右低圧ﾎﾞﾙﾄ圧入高さ,FinishProd_R_Low_Bolt_Press_Hight,YES,DM31617,WORD,REAL,real,[.00],AM323
+完成品右高圧ﾎﾞﾙﾄ圧入高さ,FinishProd_R_High_Bolt_Press_Hight,YES,DM31618,WORD,REAL,real,[.00],AM323
+完成品3点ﾋﾟｯﾁ測定,FinishProd_Three_Points_Pitch,YES,DM31619,WORD,REAL,real,[.0],AM323
+完成品ﾌﾟﾗｸﾞ径,FinishProd_Plug_Dia,YES,DM31620,WORD,REAL,real,[.00],AM323
+完成品割ﾋﾟﾝ孔位置,FinishProd_Split_Pin_Hole_Posi,YES,DM31621,WORD,REAL,real,[0],AM323
+完成品ﾄﾙｸ,FinishProd_Torque,YES,DM31622,WORD,REAL,real,[.00],AM323
+完成品ｶｼﾒ高さ,FinishProd_RollFitting_Hight,YES,DM31623,WORD,REAL,real,[.00],AM323
+完成品刻印振動検出回数,FinishProd_Stamp_Vibrate_Detect_Count,YES,DM31624,WORD,REAL,real,[0],AM323

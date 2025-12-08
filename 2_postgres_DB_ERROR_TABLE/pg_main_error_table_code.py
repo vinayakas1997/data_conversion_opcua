@@ -118,9 +118,37 @@ class CreateErrorTableCode:
             row[columns[13]] = 0
             row[columns[14]] = 0
         
-        # Fill remaining columns with None
+        # # Fill remaining columns with None
+        # for col in columns[15:]:
+        #     row[col] = "None"
+
         for col in columns[15:]:
-            row[col] = "None"
+            col_config = self.error_columns_details[col]
+            plc_address = col_config.get("PLC_Memory_Address", "")
+            
+            if plc_address:  # If PLC address exists and is not empty
+                # Convert "DM31651" to "D_31651" format
+                register_col = plc_address.replace("M", "_")  # DM31651 -> D_31651
+
+                # Debug print
+                print(f"Looking for: timestamp={timestamp}, machine={machine_name}, reg={register_col}")
+        
+                # Filter data to get the value
+                filtered = self.data.loc[
+                                (self.data['Machine_Name'] == machine_name) &
+                                (self.data['reg_address'] == register_col) &
+                                (self.data['Timestamp'] <= timestamp)
+                            ].sort_values('Timestamp', ascending=False)  # Sort by timestamp descending
+                                    
+                # print(f"Found {len(filtered)} rows, value: {filtered.values[0] if not filtered.empty else 'EMPTY'}")
+        
+                if not filtered.empty:
+                    # row[col] = filtered.values[0]['value']
+                    row[col] = filtered.iloc[0]['value']
+                else:
+                    row[col] = "None"
+            else:  # No PLC address
+                row[col] = "None"
         
         self.output_rows.append(row)
     
@@ -323,4 +351,4 @@ if __name__ == "__main__":
     print(f"Active errors (still ongoing): {sum(len(v) for v in tracker.active_errors.values())}")
     
     # Export to CSV
-    tracker.export_to_csv("2_postgres_DB/error_output.csv")
+    tracker.export_to_csv("2_postgres_DB/d_error_output.csv")
