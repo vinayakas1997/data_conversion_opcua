@@ -10,12 +10,12 @@
 ST,,NO,,,,,,None
 作業者,,YES,"[DM31601,DM31600]",DWORD,UDINT,,,
 機種,,YES,,,,,,"depends on value in reg  [DM31651,..,DM31665]"
-背番号,,,,,,,,translation of reg - as of now none
-シリアル番号,,,,,,,,ask once again 
+背番号,,NO,,,,,,translation of reg - as of now none
+シリアル番号,,YES,,,,,,ask once again 
 運転モード,V_work_mode,YES,"[502.12,502.13,502.14]",,,,,"[502.12-自動,502.13-手動,502.14払出]"
-IN/OUT,,,,,,,,"Depends on bits of reg 510, [1:IN,0:OUT]"
-判定,,,,,,,,"Depends on 511 and 512 bits, if 511 bit active -OK, if 512 bit active NG"
-MT,MT_Timer,,,,,,,"IN and OUT , the time taken "
+IN/OUT,,YES,,,,,,"Depends on bits of reg 510, [1:IN,0:OUT]"
+判定,,YES,,,,,,"Depends on 511 and 512 bits, if 511 bit active -OK, if 512 bit active NG"
+MT,MT_Timer,NO,,,,,,"IN and OUT , the time taken "
 インデックス番号,Index_No,YES,DM31700,WORD,USINT,tinyint,,
 ﾄﾙｸ上限値,Torque_UpLimit,YES,DM31606,WORD,REAL,real,[.00],AM323
 ﾄﾙｸ下限値,Torque_LoLimit,YES,DM31607,WORD,REAL,real,[.00],AM323
